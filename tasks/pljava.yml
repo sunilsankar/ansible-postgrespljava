@@ -1,0 +1,92 @@
+---
+- name: enable pljava module
+  lineinfile:
+      dest: "{{ postgres_localvolumemount }}/postgresql.conf"
+      line: "{{ item }}"
+  with_items:
+       - "pljava.libjvm_location = '/usr/lib/jvm/jre/lib/amd64/server/libjvm.so'"
+       - "pljava.classpath = '/usr/pgsql-11/share/pljava/pljava-1.5.6.jar:/usr/pgsql-11/share/pljava/pljava-api-1.5.6.jar'"
+      # - "pljava.module_path = '/usr/pgsql-11/share/pljava/pljava-1.5.6.jar:/usr/pgsql-11/share/pljava/pljava-api-1.5.6.jar'"
+
+- name: "Allow md5 connection for the db user"
+  postgresql_pg_hba:
+        dest: "{{ postgres_localvolumemount }}/pg_hba.conf"
+        contype: host
+        databases: all
+        method: md5
+        users: "{{ item }}"
+        create: true
+  become: yes
+  become_user: postgres
+  with_items:
+      - "{{ postgres_rulesuser }}"
+      - "{{ postgres_datauser }}"
+  
+
+- name: restarting postgres
+  service:
+     name: postgresql-11
+     state: restarted
+
+- name: Creation of postgres database
+  postgresql_db:
+      name: "{{ postgres_db }}"
+  become_user: postgres
+
+- name: Create user 
+  postgresql_user:
+        db: "{{ postgres_db }}"
+        user: "{{ postgres_user }}"
+        password: "{{ postgres_password }}"
+        expires: infinity
+        priv: ALL
+        role_attr_flags: SUPERUSER
+  become_user: postgres
+  
+
+- name: Create plsql script
+  copy:
+    src: files/install.sql
+    dest: /tmp/install.sql
+    mode: 0644
+
+- name: Create sql
+  copy:
+    src: files/installpljava.sql
+    dest: /tmp/installpljava.sql
+    mode: 0644
+
+- name: Create extension
+  postgresql_query:
+      db: "{{ postgres_db }}"
+      login_user: "{{ postgres_user }}"
+      login_password: "{{ postgres_password }}"
+      path_to_script: /tmp/installpljava.sql
+  failed_when: false
+  changed_when: false
+  become_user: postgres
+  become: yes
+
+- name: Run the script
+  postgresql_query:
+      db: "{{ postgres_db }}"
+      login_user: "{{ postgres_user }}"
+      login_password: "{{ postgres_password }}"
+      path_to_script: "/tmp/install.sql"
+  failed_when: false
+  changed_when: false
+  become_user: postgres
+  become: yes
+
+- name: Creation of schemas
+  postgresql_schema:
+     database: "{{ postgres_db }}"
+     login_user: "{{ postgres_user }}"
+     login_password: "{{ postgres_password }}"
+     name: "{{ item }}"
+  with_items:
+      - "{{ postgres_rulesuser }}"
+      - "{{ postgres_datauser }}"
+  become_user: postgres
+  become: yes
+...

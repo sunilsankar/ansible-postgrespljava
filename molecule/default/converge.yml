@@ -1,0 +1,25 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    postgres_localvolumemount: /data/pega/pgsql
+    postgres_binary_jar: postgresql-42.2.2.jar
+    postgres_imagename: pega8.2db
+    postgres_user: pega
+    postgres_db: pega
+    postgres_password: pegasys
+    pega_user: "{{ postgres_user }}"
+    pega_password: "{{ postgres_password }}"
+    postgres_rulesuser: pegarules 
+    postgres_datauser: pegadata
+ 
+  roles:
+      - role: ansible-role-postgrespljava
+  post_tasks:
+    - name: Verify postgres is running.
+      command: "/usr/pgsql-11/bin/pg_ctl -D {{ postgres_localvolumemount }} status"
+      changed_when: false
+      become: true
+      become_user: postgres
+
+      

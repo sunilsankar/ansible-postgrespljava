@@ -1,0 +1,3 @@
+#/etc/systemd/system/postgresql-11.service.d/override.conf
+[Service]
+Environment=PGDATA={{ postgres_localvolumemount }}

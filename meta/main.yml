@@ -1,0 +1,14 @@
+galaxy_info:
+  author: Sunil Sankar
+  description: Postgres Pljava
+
+  license: MIT
+
+  min_ansible_version: 2.9
+
+ 
+  galaxy_tags: []
+
+dependencies: []
+
+  

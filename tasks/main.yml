@@ -1,0 +1,6 @@
+---
+- name: Installation of Postgresql11
+  include_tasks: installation.yml
+- name: Getting pega db ready
+  include_tasks: pljava.yml
+...
