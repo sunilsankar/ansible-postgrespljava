@@ -4,8 +4,15 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: centos
-    image: geerlingguy/docker-rockylinux8-ansible
+  - name: almalinux
+    image: sunilsankar/docker-almalinux
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    pre_build_image: true
+  - name: rockylinux
+    image: sunilsankar/docker-rocky8
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
